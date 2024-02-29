@@ -1,0 +1,71 @@
+import hashlib
+import datetime
+
+# User database
+users = {}
+
+# URL shortener database
+shortened_urls = {}
+
+# Function to register a new user
+def register(username, password):
+    if username not in users:
+        users[username] = hashlib.sha256(password.encode()).hexdigest()
+        return True
+    return False
+
+# Function to authenticate a user
+def login(username, password):
+    if username in users and users[username] == hashlib.sha256(password.encode()).hexdigest():
+        return True
+    return False
+
+# Function to generate a short code for a URL
+def generate_short_code(url):
+    return hashlib.sha256(url.encode()).hexdigest()[:6]
+
+# Function to shorten a URL
+def shorten_url(username, original_url):
+    if username in users:
+        short_code = generate_short_code(original_url)
+        shortened_urls[short_code] = {
+            'original_url': original_url,
+            'username': username,
+            'timestamp': datetime.datetime.now(),
+            'click_count': 0
+        }
+        return short_code
+    return None
+
+# Function to redirect to original URL and track clicks
+def redirect_to_original(short_code):
+    if short_code in shortened_urls:
+        url_data = shortened_urls[short_code]
+        url_data['click_count'] += 1
+        return url_data['original_url']
+    return None
+
+# Main function for demonstration
+def main():
+    # Register a new user
+    register("user1", "password123")
+
+    # Authenticate the user
+    if login("user1", "password123"):
+        print("Login successful.")
+    else:
+        print("Login failed.")
+
+    # Shorten a URL
+    short_code = shorten_url("user1", "https://example.com")
+    print(f"Shortened URL: https://short.url/{short_code}")
+
+    # Redirect to original URL
+    original_url = redirect_to_original(short_code)
+    if original_url:
+        print(f"Redirecting to original URL: {original_url}")
+    else:
+        print("Shortened URL not found.")
+
+if __name__ == "__main__":
+    main()
